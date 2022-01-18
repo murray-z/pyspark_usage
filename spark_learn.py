@@ -158,7 +158,35 @@ def f12():
     df = spark.sql("select * from parquet.`{}`".format(user_parquet_path))
 
 
+# spark streaming, 统计一个时间段词频
+def f13():
+    ssc = StreamingContext(sc, 1)
 
+    # create a Dstream that will connect to hostname:port
+    lines = ssc.socketTextStream("hostname", 9999)
+
+    # split each line into words
+    words = lines.flatMap(lambda line: line.split(" "))
+
+    # count each word in each batch
+    pairs = words.map(lambda word: (word, 1))
+    wordCounts = pairs.reduceByKey(lambda x, y: x+y)
+    wordCounts.pprint()
+
+    # start the computation
+    ssc.start()
+
+    # wait for the computation to terminate
+    ssc.awaitTermination()
+
+
+# Streaming Basic Sources
+def f14():
+    ssc = StreamingContext(sc, 1)
+    # File Streams: 监控路径，例如：hdfs://namenode:8040/logs/
+    ssc.textFileStream("data_directory")
+
+    
 if __name__ == '__main__':
     people_json_path = "/usr/local/spark/spark-3.2.0-bin-hadoop3.2/examples/src/main/resources/people.json"
     people_txt_path = "/usr/local/spark/spark-3.2.0-bin-hadoop3.2/examples/src/main/resources/people.txt"
